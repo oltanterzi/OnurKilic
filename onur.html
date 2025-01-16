@@ -1,0 +1,220 @@
+<html>
+	<head>
+	<style>
+		img {
+			max-width: 100%;
+			height: auto; 
+		};
+	</style>
+	<script>
+	const proxyUrl = "https://cors-anywhere.herokuapp.com/";
+	const olusturUrl = "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1";
+	var kartCekUrlTemp = "https://deckofcardsapi.com/api/deck/###URL###/draw/?count=1";
+	var kartCekUrl = "https://deckofcardsapi.com/api/deck/###URL###/draw/?count=52";
+	
+	var deckID;
+	var cards = [];
+	var birinciKart;
+	var ikinciKart;
+	var kacinciKart = 0;
+	
+	function httpGet(theUrl) {
+		let xmlHttp = new XMLHttpRequest();
+		xmlHttp.open("GET", theUrl, false);
+		xmlHttp.send();
+		return JSON.parse(xmlHttp.responseText);
+	};
+	
+	function deckBelirle() {
+		let deckBelirleURL = proxyUrl + olusturUrl;
+		let jsonDeckBelirle = httpGet(deckBelirleURL);
+		
+		deckID = jsonDeckBelirle.deck_id;
+		
+		document.getElementById("deckID").innerText = deckID;
+		
+		if ( kartCekUrl.includes("###URL###") ) {
+			kartCekUrl = kartCekUrl.replace("###URL###",deckID);
+		};
+		
+		let jsonKartCek = httpGet(proxyUrl + kartCekUrl);
+		cards = jsonKartCek.cards;
+	};
+	
+	function sifirla() {
+		deckID      = undefined;
+		birinciKart = undefined;
+		ikinciKart  = undefined;
+		kartCekUrl  = kartCekUrlTemp;
+		cards       = [];
+		kacinciKart = 0;
+		
+		document.getElementById("deckID").innerText    = "";
+		document.getElementById("kartCode").innerText  = "";
+		document.getElementById("kartValue").innerText = "";
+		document.getElementById("kartSuit").innerText  = "";
+		document.getElementById("remaining").innerText = "";
+		document.getElementById("kart1").innerText     = "";
+		document.getElementById("kart2").innerText     = "";
+		document.getElementById("kartResmi").src       = "https://deckofcardsapi.com/static/img/back.png";
+		document.getElementById("kapatAc1").disabled   = false;
+		document.getElementById("kapatAc2").disabled   = false;
+	};
+	
+	function kartCek() {
+		if ( deckID == undefined ) {
+			alert("önce Deck Belirle");
+			return;
+		};
+		
+		if ( birinciKart == undefined || ikinciKart == undefined ) {
+			
+			if ( birinciKart == undefined ) {
+				alert("Birinci oyuncu kart seçsin");
+				return;
+			};
+			
+			if ( ikinciKart == undefined ) {
+				alert("İkinci oyuncu kart seçsin");
+				return;
+			};
+		};
+		
+		let card = cards[kacinciKart];
+		
+		kacinciKart++;
+		
+		document.getElementById("kartCode").innerText = card.code;
+		document.getElementById("kartValue").innerText = card.value;
+		document.getElementById("kartSuit").innerText = card.suit;
+		document.getElementById("remaining").innerText = ( 52 - kacinciKart );
+		document.getElementById("kartResmi").src = card.image;
+		
+		winControl(card.code);
+	};
+	
+	function winControl(cardCode) {
+		if ( birinciKart == cardCode ) {
+			document.getElementById("kapatAc1").disabled = true;
+			document.getElementById("kapatAc2").disabled = true;
+			alert("1. Oyuncu kazandi!!!!");
+			return;
+		};
+		if ( ikinciKart == cardCode ) {
+			document.getElementById("kapatAc1").disabled = true;
+			document.getElementById("kapatAc2").disabled = true;
+			alert("2. Oyuncu kazandi!!!!");
+			return;
+		};
+	};
+	
+	function kartSec(kartCode) {
+		if ( birinciKart == undefined ) {
+			birinciKart = kartCode;
+			document.getElementById("kart1").innerText = birinciKart;
+			return;
+		};
+		
+		if ( birinciKart == kartCode ) {
+			alert("Farki kart seç!");
+			return;
+		};
+		
+		if ( ikinciKart == undefined ) {
+			ikinciKart = kartCode;
+			document.getElementById("kart2").innerText = ikinciKart;
+			return;
+		};
+		
+		alert("Kartlar Seçildi");
+		return;
+	};
+	
+	</script>
+	</head>
+	<body>
+		<button id="kapatAc1" onclick="deckBelirle()">Deck Belirle</button>
+		<button onclick="sifirla()">Sifirla</button>
+		
+		<p><b>Deck ID:</b><span id="deckID"></span></p>
+		
+		<img id="kartResmi" src="https://deckofcardsapi.com/static/img/back.png"/>
+		
+		<br/>
+		<br/>
+		
+		<button id="kapatAc2" onclick="kartCek()">Kart Cek</button>
+		
+		<p><b>Kart Code:</b><span id="kartCode"></span></p>
+		<p><b>Kart Value:</b><span id="kartValue"></span></p>
+		<p><b>Kart Suit:</b><span id="kartSuit"></span></p>
+		<p><b>Kalan Kart Sayisi:</b><span id="remaining"></span></p>
+		<p><b>1. Oyuncunun Karti:</b><span id="kart1"></span></p>
+		<p><b>2. Oyuncunun Karti:</b><span id="kart2"></span></p>
+		
+		<table border="1" width="100%">
+			<tr>
+				<td width="auto"><a onclick="kartSec('2D')"><img src="https://deckofcardsapi.com/static/img/2D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('3D')"><img src="https://deckofcardsapi.com/static/img/3D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('4D')"><img src="https://deckofcardsapi.com/static/img/4D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('5D')"><img src="https://deckofcardsapi.com/static/img/5D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('6D')"><img src="https://deckofcardsapi.com/static/img/6D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('7D')"><img src="https://deckofcardsapi.com/static/img/7D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('8D')"><img src="https://deckofcardsapi.com/static/img/8D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('9D')"><img src="https://deckofcardsapi.com/static/img/9D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('0D')"><img src="https://deckofcardsapi.com/static/img/0D.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('JD')"><img src="https://deckofcardsapi.com/static/img/JD.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('QD')"><img src="https://deckofcardsapi.com/static/img/QD.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('KD')"><img src="https://deckofcardsapi.com/static/img/KD.png"/></a></td>
+				<td width="auto"><a onclick="kartSec('AD')"><img src="https://deckofcardsapi.com/static/img/AD.png"/></a></td>
+			</tr>
+			<tr>
+				<td><a onclick="kartSec('2S')"><img src="https://deckofcardsapi.com/static/img/2S.png"/></a></td>
+				<td><a onclick="kartSec('3S')"><img src="https://deckofcardsapi.com/static/img/3S.png"/></a></td>
+				<td><a onclick="kartSec('4S')"><img src="https://deckofcardsapi.com/static/img/4S.png"/></a></td>
+				<td><a onclick="kartSec('5S')"><img src="https://deckofcardsapi.com/static/img/5S.png"/></a></td>
+				<td><a onclick="kartSec('6S')"><img src="https://deckofcardsapi.com/static/img/6S.png"/></a></td>
+				<td><a onclick="kartSec('7S')"><img src="https://deckofcardsapi.com/static/img/7S.png"/></a></td>
+				<td><a onclick="kartSec('8S')"><img src="https://deckofcardsapi.com/static/img/8S.png"/></a></td>
+				<td><a onclick="kartSec('9S')"><img src="https://deckofcardsapi.com/static/img/9S.png"/></a></td>
+				<td><a onclick="kartSec('0S')"><img src="https://deckofcardsapi.com/static/img/0S.png"/></a></td>
+				<td><a onclick="kartSec('JS')"><img src="https://deckofcardsapi.com/static/img/JS.png"/></a></td>
+				<td><a onclick="kartSec('QS')"><img src="https://deckofcardsapi.com/static/img/QS.png"/></a></td>
+				<td><a onclick="kartSec('KS')"><img src="https://deckofcardsapi.com/static/img/KS.png"/></a></td>
+				<td><a onclick="kartSec('AS')"><img src="https://deckofcardsapi.com/static/img/AS.png"/></a></td>
+			</tr>
+			<tr>
+				<td><a onclick="kartSec('2H')"><img src="https://deckofcardsapi.com/static/img/2H.png"/></a></td>
+				<td><a onclick="kartSec('3H')"><img src="https://deckofcardsapi.com/static/img/3H.png"/></a></td>
+				<td><a onclick="kartSec('4H')"><img src="https://deckofcardsapi.com/static/img/4H.png"/></a></td>
+				<td><a onclick="kartSec('5H')"><img src="https://deckofcardsapi.com/static/img/5H.png"/></a></td>
+				<td><a onclick="kartSec('6H')"><img src="https://deckofcardsapi.com/static/img/6H.png"/></a></td>
+				<td><a onclick="kartSec('7H')"><img src="https://deckofcardsapi.com/static/img/7H.png"/></a></td>
+				<td><a onclick="kartSec('8H')"><img src="https://deckofcardsapi.com/static/img/8H.png"/></a></td>
+				<td><a onclick="kartSec('9H')"><img src="https://deckofcardsapi.com/static/img/9H.png"/></a></td>
+				<td><a onclick="kartSec('0H')"><img src="https://deckofcardsapi.com/static/img/0H.png"/></a></td>
+				<td><a onclick="kartSec('JH')"><img src="https://deckofcardsapi.com/static/img/JH.png"/></a></td>
+				<td><a onclick="kartSec('QH')"><img src="https://deckofcardsapi.com/static/img/QH.png"/></a></td>
+				<td><a onclick="kartSec('KH')"><img src="https://deckofcardsapi.com/static/img/KH.png"/></a></td>
+				<td><a onclick="kartSec('AH')"><img src="https://deckofcardsapi.com/static/img/AH.png"/></a></td>
+			</tr>
+			<tr>
+				<td><a onclick="kartSec('2C')"><img src="https://deckofcardsapi.com/static/img/2C.png"/></a></td>
+				<td><a onclick="kartSec('3C')"><img src="https://deckofcardsapi.com/static/img/3C.png"/></a></td>
+				<td><a onclick="kartSec('4C')"><img src="https://deckofcardsapi.com/static/img/4C.png"/></a></td>
+				<td><a onclick="kartSec('5C')"><img src="https://deckofcardsapi.com/static/img/5C.png"/></a></td>
+				<td><a onclick="kartSec('6C')"><img src="https://deckofcardsapi.com/static/img/6C.png"/></a></td>
+				<td><a onclick="kartSec('7C')"><img src="https://deckofcardsapi.com/static/img/7C.png"/></a></td>
+				<td><a onclick="kartSec('8C')"><img src="https://deckofcardsapi.com/static/img/8C.png"/></a></td>
+				<td><a onclick="kartSec('9C')"><img src="https://deckofcardsapi.com/static/img/9C.png"/></a></td>
+				<td><a onclick="kartSec('0C')"><img src="https://deckofcardsapi.com/static/img/0C.png"/></a></td>
+				<td><a onclick="kartSec('JC')"><img src="https://deckofcardsapi.com/static/img/JC.png"/></a></td>
+				<td><a onclick="kartSec('QC')"><img src="https://deckofcardsapi.com/static/img/QC.png"/></a></td>
+				<td><a onclick="kartSec('KC')"><img src="https://deckofcardsapi.com/static/img/KC.png"/></a></td>
+				<td><a onclick="kartSec('AC')"><img src="https://deckofcardsapi.com/static/img/AC.png"/></a></td>
+			</tr>
+		</table>
+		
+	</body>
+</html>
+	
